@@ -1,0 +1,154 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.23.1.45101",
+      "templateHash": "1052144671874282336"
+    }
+  },
+  "parameters": {
+    "workspaceName": {
+      "type": "string"
+    },
+    "subscriptionID": {
+      "type": "string",
+      "defaultValue": "[subscription().subscriptionId]"
+    },
+    "resourceGroupname": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().name]"
+    },
+    "playbookNameSOCMDEIncident": {
+      "type": "string",
+      "defaultValue": "Create-SOC-MDE-Incident-to-ServiceDesk"
+    },
+    "playbookNameIsolateMDEMachine": {
+      "type": "string",
+      "defaultValue": "Isolate-MDEMachine"
+    },
+    "playbookNameSOCIncidentServiceDesk": {
+      "type": "string",
+      "defaultValue": "Create-SOC-Incident-to-ServiceDesk"
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.SecurityInsights/automationRules",
+      "apiVersion": "2019-01-01-preview",
+      "scope": "[format('Microsoft.OperationalInsights/workspaces/{0}', parameters('workspaceName'))]",
+      "name": "[parameters('playbookNameSOCMDEIncident')]",
+      "properties": {
+        "displayName": "[parameters('playbookNameSOCMDEIncident')]",
+        "order": 1,
+        "triggeringLogic": {
+          "isEnabled": true,
+          "expirationTimeUtc": "",
+          "triggersOn": "Incidents",
+          "triggersWhen": "Created",
+          "conditions": [
+            {
+              "conditionType": "Property",
+              "conditionProperties": {
+                "operator": "Equals",
+                "propertyName": "IncidentProviderName",
+                "propertyValues": [
+                  "Microsoft 365 Defender"
+                ]
+              }
+            }
+          ]
+        },
+        "actions": [
+          {
+            "order": 1,
+            "actionType": "RunPlaybook",
+            "actionConfiguration": {
+              "tenantId": "[subscription().tenantId]",
+              "logicAppResourceId": "[format('/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Logic/workflows/{2}', parameters('subscriptionID'), parameters('resourceGroupname'), parameters('playbookNameSOCMDEIncident'))]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.SecurityInsights/automationRules",
+      "apiVersion": "2019-01-01-preview",
+      "scope": "[format('Microsoft.OperationalInsights/workspaces/{0}', parameters('workspaceName'))]",
+      "name": "[parameters('playbookNameIsolateMDEMachine')]",
+      "properties": {
+        "displayName": "[parameters('playbookNameIsolateMDEMachine')]",
+        "order": 2,
+        "triggeringLogic": {
+          "isEnabled": true,
+          "expirationTimeUtc": "",
+          "triggersOn": "Incidents",
+          "triggersWhen": "Created",
+          "conditions": [
+            {
+              "conditionType": "Property",
+              "conditionProperties": {
+                "operator": "Contains",
+                "propertyName": "AlertProductNames",
+                "propertyValues": [
+                  "Microsoft 365 Defender",
+                  "Microsoft Defender Advanced Threat Protection"
+                ]
+              }
+            }
+          ]
+        },
+        "actions": [
+          {
+            "order": 2,
+            "actionType": "RunPlaybook",
+            "actionConfiguration": {
+              "tenantId": "[subscription().tenantId]",
+              "logicAppResourceId": "[format('/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Logic/workflows/{2}', parameters('subscriptionID'), parameters('resourceGroupname'), parameters('playbookNameIsolateMDEMachine'))]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.SecurityInsights/automationRules",
+      "apiVersion": "2019-01-01-preview",
+      "scope": "[format('Microsoft.OperationalInsights/workspaces/{0}', parameters('workspaceName'))]",
+      "name": "[parameters('playbookNameSOCIncidentServiceDesk')]",
+      "properties": {
+        "displayName": "[parameters('playbookNameSOCIncidentServiceDesk')]",
+        "order": 3,
+        "triggeringLogic": {
+          "isEnabled": true,
+          "expirationTimeUtc": "",
+          "triggersOn": "Incidents",
+          "triggersWhen": "Created",
+          "conditions": [
+            {
+              "conditionType": "Property",
+              "conditionProperties": {
+                "operator": "NotContains",
+                "propertyName": "AlertProductNames",
+                "propertyValues": [
+                  "Microsoft 365 Defender",
+                  "Microsoft Defender Advanced Threat Protection"
+                ]
+              }
+            }
+          ]
+        },
+        "actions": [
+          {
+            "order": 3,
+            "actionType": "RunPlaybook",
+            "actionConfiguration": {
+              "tenantId": "[subscription().tenantId]",
+              "logicAppResourceId": "[format('/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Logic/workflows/{2}', parameters('subscriptionID'), parameters('resourceGroupname'), parameters('playbookNameSOCIncidentServiceDesk'))]"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

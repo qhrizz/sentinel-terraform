@@ -1,0 +1,53 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.23.1.45101",
+      "templateHash": "15182672754884600958"
+    }
+  },
+  "parameters": {
+    "actionGroups_LA_to_Soc_name": {
+      "type": "string",
+      "defaultValue": "Alert-SOC",
+      "metadata": {
+        "description": "Name of the Alert group, must NOT exceed 12 characters"
+      }
+    },
+    "alertEmail": {
+      "type": "string",
+      "defaultValue": "myEmail@domain.com"
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Insights/actionGroups",
+      "apiVersion": "2023-01-01",
+      "name": "[parameters('actionGroups_LA_to_Soc_name')]",
+      "location": "Global",
+      "properties": {
+        "groupShortName": "[parameters('actionGroups_LA_to_Soc_name')]",
+        "enabled": true,
+        "emailReceivers": [
+          {
+            "name": "support_-EmailAction-",
+            "emailAddress": "[parameters('alertEmail')]",
+            "useCommonAlertSchema": false
+          }
+        ],
+        "smsReceivers": [],
+        "webhookReceivers": [],
+        "eventHubReceivers": [],
+        "itsmReceivers": [],
+        "azureAppPushReceivers": [],
+        "automationRunbookReceivers": [],
+        "voiceReceivers": [],
+        "logicAppReceivers": [],
+        "azureFunctionReceivers": [],
+        "armRoleReceivers": []
+      }
+    }
+  ]
+}
