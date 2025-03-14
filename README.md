@@ -23,6 +23,7 @@ This terraform script will
 - Azure cli
 - Terraform
 - An Azure subscription
+  - Take of your subscription id
 - Permissions to deploy resources
 - Go through the terraform.tfvars file and edit the variables to your liking
 

@@ -3,11 +3,11 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.81.0"
+      version = "=4.23.0"
     }
     azuread = {
       source  = "hashicorp/azuread"
-      version = "~> 2.7.0"
+      version = "~> 3.1.0"
     }
   }
 }
@@ -17,6 +17,7 @@ terraform {
 # Dunno why (shrugman)
 provider "azurerm" {
   features {}
+  subscription_id = var.subscriptionId
 }
 
 # Get Subscription data, used for example scope and such
@@ -42,20 +43,10 @@ resource "azurerm_log_analytics_workspace" "logAnalyticsWorkspace" {
  ]
 }
 
-# Add the solution SecurityInsights to the log analytics workspace, which makes it Sentinel
-resource "azurerm_log_analytics_solution" "la-SecurityInsights" {
-  solution_name         = "SecurityInsights"
-  location              = azurerm_resource_group.resourceGroup.location
-  resource_group_name   = azurerm_resource_group.resourceGroup.name
-  workspace_resource_id = azurerm_log_analytics_workspace.logAnalyticsWorkspace.id
-  workspace_name        = azurerm_log_analytics_workspace.logAnalyticsWorkspace.name
-  plan {
-    publisher = "Microsoft"
-    product   = "OMSGallery/SecurityInsights"
-  }
-  depends_on = [
-    azurerm_log_analytics_workspace.logAnalyticsWorkspace
- ]
+# Onboard Sentinel to log analytics workspace 
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "logAnalyticsWorkspace" {
+  workspace_id                 = azurerm_log_analytics_workspace.logAnalyticsWorkspace.id
+  customer_managed_key_enabled = false
 }
 
 # Assign Azure Security Insights App to be able to run playbooks
@@ -106,7 +97,6 @@ resource "azurerm_role_assignment" "managed-SPN-MDE-SIEM" {
 
 # Get all published Apps Ids
 data "azuread_application_published_app_ids" "well_known" {}
-
 # Can be used to print which published app ids there are
 /*
 output "published_app_ids" {
@@ -116,7 +106,7 @@ output "published_app_ids" {
 
 # This gets the MS Graph app id  which is used when assigning SecurityAlert.Read.All
 resource "azuread_service_principal" "msgraph" {
-  application_id = data.azuread_application_published_app_ids.well_known.result.MicrosoftGraph
+  client_id = data.azuread_application_published_app_ids.well_known.result.MicrosoftGraph
   use_existing   = true
 }
 
@@ -135,7 +125,7 @@ resource "azuread_app_role_assignment" "managed-SPN-MDE-SIEM-Graph-Permissions" 
 
 # Get Windows Defender ATP AppId for use when assigning permissions in the WDATP API
 resource "azuread_service_principal" "wdatp" {
-  application_id = data.azuread_application_published_app_ids.well_known.result.WindowsDefenderAtp
+  client_id = data.azuread_application_published_app_ids.well_known.result.WindowsDefenderAtp
   use_existing   = true
 }
 

@@ -43,3 +43,8 @@ variable "alertEmail" {
   description = "Set alertEmail for the ActionGroup"
   default = "myEmail@domain.com"
 }
+variable "subscriptionId" {
+  type        = string
+  description = "Set subscriptionId"
+  default = "00000000-0000-0000-0000-000000000000"
+}
